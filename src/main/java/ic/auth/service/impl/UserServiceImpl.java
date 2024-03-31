@@ -81,7 +81,7 @@ public class UserServiceImpl implements UserService {
         UserInfo parsedInfo = Utils.parseHeader(authHeader);
         User user = getUserByEmail(parsedInfo.getEmail());
         if (!passwordEncoder.matches(parsedInfo.getPassword(), user.getPassword())) {
-            throw new UnauthorizedException(HttpStatus.UNAUTHORIZED, "Incorrect password!");
+            throw new UnauthorizedException(HttpStatus.BAD_REQUEST, "Incorrect password!");
         }
         OffsetDateTime now = OffsetDateTime.now();
         user.setSessionInvalidatesAt(now.plusSeconds(accessTokenExpiry));
