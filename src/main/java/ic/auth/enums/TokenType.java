@@ -1,4 +1,4 @@
-package ic.auth;
+package ic.auth.enums;
 
 public enum TokenType {
     ACCESS_TOKEN("access"), REFRESH_TOKEN("refresh");

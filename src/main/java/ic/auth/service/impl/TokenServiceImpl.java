@@ -1,6 +1,6 @@
 package ic.auth.service.impl;
 
-import ic.auth.TokenType;
+import ic.auth.enums.TokenType;
 import ic.auth.dto.TokenInfo;
 import ic.auth.entity.User;
 import ic.auth.service.TokenService;

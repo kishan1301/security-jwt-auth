@@ -1,6 +1,6 @@
 package ic.auth.service.impl;
 
-import ic.auth.TokenType;
+import ic.auth.enums.TokenType;
 import ic.auth.constants.CommonConstants;
 import ic.auth.dto.TokenInfo;
 import ic.auth.dto.UserInfo;
@@ -20,7 +20,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.util.Date;
 import java.util.Optional;
