@@ -25,4 +25,10 @@ public class TokenController {
         tokenService.invalidateToken(bearerToken);
         return ResponseEntity.status(HttpStatus.ACCEPTED).build();
     }
+
+    @PostMapping(path = "refresh-jwt")
+    public ResponseEntity<TokenInfo> refreshToken(@RequestHeader(HttpHeaders.AUTHORIZATION) String bearerToken) {
+        TokenInfo tokenInfo = tokenService.refreshToken(bearerToken);
+        return ResponseEntity.ok(tokenInfo);
+    }
 }

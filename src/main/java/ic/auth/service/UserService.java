@@ -15,4 +15,8 @@ public interface UserService {
     User updateUser(User user);
 
     User getUser(String bearerToken);
+
+    User invalidateUserSession(User user);
+
+    TokenInfo refreshToken(String emailId);
 }

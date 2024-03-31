@@ -1,20 +1,24 @@
 package ic.auth.utils;
 
 import com.auth0.jwt.JWT;
+import com.auth0.jwt.JWTCreator;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import ic.auth.TokenType;
+import ic.auth.constants.CommonConstants;
 import ic.auth.entity.User;
 import ic.auth.exception.UnauthorizedException;
-import io.jsonwebtoken.Claims;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.Date;
-import java.util.function.Function;
+import java.util.Map;
+import java.util.function.BiFunction;
+
+import static ic.auth.constants.CommonConstants.TYP_CLAIM;
 
 @Slf4j
 public class JwtUtils {
@@ -22,30 +26,28 @@ public class JwtUtils {
     private JwtUtils() {
     }
 
-    private static final String SECRET_KEY = "c3RvcnlvZmZpcmVwbGFjZWNyb3Nzd2hlcmVlYXRlbnRlbm1lbnRhbHJhYmJpdHBvcHVsYXJncmVhdGVyb3JpZ2luZGlzZWFzZXNlZWRjb21lYW5ncnlmaW5hbGx5bG9zZWdvdmVybm1lbnRyYWlscm9hZGRldGFpbGJyb3VnaHRoZWxkZW5lbXljYWxsbG9jYXRpb25raW5kbGF3b2ZmaWNlcnNwZWNpZXNsYXJnZXJ0aHVzbWFpbnBpbGVwYXJhZ3JhcGhoaWdoZXJyaHltZW93bmVsZWN0cmljY29hY2hoZWxkdHJlZXNhaWR1cG9uZmVldGJlZm9yZWFybXlkaQ==";
-    private static final String ISSUER = "token-issuer";
+    private static final BiFunction<DecodedJWT, TokenType, Void> tokenTypCheck = (decodedJWT, tokenType) -> {
+        if (!tokenType.name().equals(decodedJWT.getClaim(TYP_CLAIM).asString())) {
+            throw new UnauthorizedException(HttpStatus.BAD_REQUEST,
+                    String.format("Incorrect token type is provided, required %s but provided %s", tokenType.name(), decodedJWT.getClaim(TYP_CLAIM).asString()));
+        }
+        return null;
+    };
 
-    public static String generateToken(User user) {
-        return JWT.create()
-                .withExpiresAt(user.getSessionInvalidatesAt().toInstant().minus(1, ChronoUnit.MINUTES))
-                .withExpiresAt(user.getSessionInvalidatesAt().toInstant())
-                .withSubject(user.getEmail())
-                .withIssuer(ISSUER)
-                .withClaim("first_name", user.getFirstName())
-                .withClaim("last_name", user.getLastName())
-                .sign(getAlgorithm());
-    }
+    private static final BiFunction<DecodedJWT, TokenType, Void> tokenExpiryCheck = (decodedJWT, tokeType) -> {
+        if (Instant.now().isAfter(decodedJWT.getExpiresAtAsInstant())) {
+            String message = "Security(%s) token has been expired%s!";
+            message = tokeType == TokenType.REFRESH_TOKEN
+                    ? String.format(message, tokeType.name(), ", please log-in again")
+                    : String.format(message, tokeType.name(), CommonConstants.EMPTY);
+            throw new UnauthorizedException(HttpStatus.UNAUTHORIZED, message);
+        }
+        return null;
+    };
 
-    public static String validateAndGetSubject(String bearerToken) {
-        DecodedJWT decodedJWT = JWT.decode(bearerToken.substring("Bearer ".length()));
-        verifyExpiry(decodedJWT);
-        verifySign(decodedJWT);
-        return decodedJWT.getSubject();
-    }
-
-    private static void verifySign(DecodedJWT decodedJWT) {
-        Algorithm algorithm = Algorithm.HMAC256(SECRET_KEY);
-        JWTVerifier verifier = JWT.require(algorithm).withIssuer(ISSUER).build();
+    private static void verifySign(DecodedJWT decodedJWT, String secretKey, String issuer) {
+        Algorithm algorithm = Algorithm.HMAC256(secretKey);
+        JWTVerifier verifier = JWT.require(algorithm).withIssuer(issuer).build();
         try {
             verifier.verify(decodedJWT);
         } catch (JWTVerificationException e) {
@@ -53,20 +55,53 @@ public class JwtUtils {
         }
     }
 
-    private static void verifyExpiry(DecodedJWT decodedJWT) {
-        if (Instant.now().isAfter(decodedJWT.getExpiresAtAsInstant()))
-            throw new UnauthorizedException(HttpStatus.UNAUTHORIZED, "Security token has been expired!");
+    public static String generateToken(User user, Instant now, String secretString, String issuer) {
+        JWTCreator.Builder jwtBuilder = JWT.create()
+                .withExpiresAt(user.getSessionInvalidatesAt().toInstant());
+        return generateToken(user, jwtBuilder, Map.of(TYP_CLAIM, TokenType.ACCESS_TOKEN.name()),
+                secretString, issuer, now);
+    }
+
+    public static String generateRefreshToken(User user, Instant now,
+                                              String secretString, String issuer) {
+        JWTCreator.Builder jwtBuilder = JWT.create()
+                .withExpiresAt(user.getRefreshValidTill().toInstant());
+        return generateToken(user, jwtBuilder, Map.of(TYP_CLAIM, TokenType.REFRESH_TOKEN.name()),
+                secretString, issuer, now);
+    }
+
+    private static String generateToken(User user, JWTCreator.Builder jwtBuilder, Map<String, String> claims,
+                                        String secretString, String issuer, Instant now) {
+        jwtBuilder
+                .withIssuedAt(now)
+                .withSubject(user.getEmail())
+                .withIssuer(issuer)
+                .withClaim("first_name", user.getFirstName())
+                .withClaim("last_name", user.getLastName());
+        claims.forEach(jwtBuilder::withClaim);
+        return jwtBuilder.sign(getAlgorithm(secretString));
+    }
+
+    public static String validateAndGetSubject(String bearerToken, TokenType tokenType, String secretString, String issuer) {
+        DecodedJWT decodedJWT = validateAndGetDecodedJwt(bearerToken, tokenType, secretString, issuer);
+        return decodedJWT.getSubject();
+    }
+
+    private static DecodedJWT validateAndGetDecodedJwt(String bearerToken, TokenType tokenType,
+                                                       String secretString, String issuer) {
+        DecodedJWT decodedJWT = JWT.decode(bearerToken.substring("Bearer ".length()));
+        tokenTypCheck.apply(decodedJWT, tokenType);
+        tokenExpiryCheck.apply(decodedJWT, tokenType);
+        verifySign(decodedJWT, secretString, issuer);
+        return decodedJWT;
     }
 
     public static Date extractExpiration(String bearerToken) {
-        return extractClaim(bearerToken, Claims::getExpiration);
+        DecodedJWT decodedJWT = JWT.decode(bearerToken.substring("Bearer ".length()));
+        return decodedJWT.getExpiresAt();
     }
 
-    private static <T> T extractClaim(String bearerToken, Function<Claims, T> claimResolver) {
-        return null;
-    }
-
-    private static Algorithm getAlgorithm() {
-        return Algorithm.HMAC256(SECRET_KEY);
+    private static Algorithm getAlgorithm(String secretKey) {
+        return Algorithm.HMAC256(secretKey);
     }
 }

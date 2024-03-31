@@ -40,4 +40,6 @@ public class User {
     private String lastName;
     @Column
     private OffsetDateTime sessionInvalidatesAt;
+    @Column
+    private OffsetDateTime refreshValidTill;
 }
