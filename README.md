@@ -29,3 +29,17 @@ Please hit enter after providing values.
  # Swagger
  Open url http://localhost:8080/swagger-ui/index.html#/ to know details of all the APIs.
  Manually include Authorization token in cURL requests obtained from swagger-ui.
+
+
+ # API requirements.
+
+ APIs that requires Basic Auth, email-password based authentication.
+ 	- user-signup
+ 	- user-signin
+
+ APIs that requires Bearer Auth, jwt based authentication.
+ 	- get-users
+ 	- invalidate-token
+ 	- token-refresh-jwt
+
+ 
