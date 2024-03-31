@@ -1,0 +1,11 @@
+services:
+  java-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 8080:8080
+    networks:
+      - my_network
+networks:
+  my_network:

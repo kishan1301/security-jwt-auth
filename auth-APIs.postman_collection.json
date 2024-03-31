@@ -1,0 +1,139 @@
+{
+	"info": {
+		"_postman_id": "9531516a-c15f-4267-9dec-dd81874a6cd5",
+		"name": "auth-APIs",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
+		"_exporter_id": "17503889"
+	},
+	"item": [
+		{
+			"name": "user-signup",
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": {
+						"username": "kishan@email.com",
+						"password": "test"
+					}
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"first_name\": \"kishan\",\n    \"last_name\": \"gupta\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:8080/users/signup"
+			},
+			"response": []
+		},
+		{
+			"name": "get-users",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTE4Nzk5NjQsImlhdCI6MTcxMTg3OTkwNCwic3ViIjoia2lzaGFuQGVtYWlsLmNvbSIsImlzcyI6InRva2VuLWlzc3VlciIsImZpcnN0X25hbWUiOiJraXNoYW4iLCJsYXN0X25hbWUiOiJndXB0YSIsInR5cCI6IkFDQ0VTU19UT0tFTiJ9.FL9QrPX8YMDNnnMY6lx7BV7at7os0SyCqxpeoycYB2E",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "Basic a2lzaGFuQGVtYWlsLmNvbTp0ZXN0",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"url": "http://localhost:8080/users"
+			},
+			"response": []
+		},
+		{
+			"name": "user-sign-in",
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": {
+						"username": "kishan@email.com",
+						"password": "test"
+					}
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": "http://localhost:8080/users/sign-in"
+			},
+			"response": []
+		},
+		{
+			"name": "token-invalidate",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTE4Nzk5ODAsImlhdCI6MTcxMTg3OTkyMCwic3ViIjoia2lzaGFuQGVtYWlsLmNvbSIsImlzcyI6InRva2VuLWlzc3VlciIsImZpcnN0X25hbWUiOiJraXNoYW4iLCJsYXN0X25hbWUiOiJndXB0YSIsInR5cCI6IkFDQ0VTU19UT0tFTiJ9.B5kS6TdnlwLX8ttGS19IDzRbvlbSySLQVu6FHRsZoWg",
+						"type": "text"
+					}
+				],
+				"url": "http://localhost:8080/token/invalidate"
+			},
+			"response": []
+		},
+		{
+			"name": "refresh-jwt",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTE4ODAwMDQsImlhdCI6MTcxMTg3OTkwNCwic3ViIjoia2lzaGFuQGVtYWlsLmNvbSIsImlzcyI6InRva2VuLWlzc3VlciIsImZpcnN0X25hbWUiOiJraXNoYW4iLCJsYXN0X25hbWUiOiJndXB0YSIsInR5cCI6IlJFRlJFU0hfVE9LRU4ifQ.zs9TTmP5-rw_PfXXADrGfVuTcuYxBiJDz15pIr9DGTo",
+						"type": "text"
+					}
+				],
+				"url": "http://localhost:8080/token/refresh-jwt"
+			},
+			"response": []
+		}
+	]
+}
